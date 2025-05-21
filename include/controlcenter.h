@@ -47,7 +47,7 @@ public:
   * @param 
   *
   */
-	void midlineextraction(PerspectiveMapping& mapping,bool left);
+	void midlineextraction(PerspectiveMapping& mapping,bool left, double point_dis);
 
 	/**
 * @brief  纯跟踪控制
@@ -55,15 +55,15 @@ public:
 * @param
 *
 */
-	double pure_pursuit(Tracking& tracking, PerspectiveMapping& mapping);
+	double pure_pursuit(Tracking& tracking, PerspectiveMapping& mapping,double dis1);
 	
 	/**
 * @brief  调用函数计算出反馈角度
 *
-* @param
+* @param dis1:目标点距离，dis2：平移距离
 *
 */
-	double Feedback_extraction(Tracking& tracking, PerspectiveMapping& mapping, bool dir);
+	double Feedback_extraction(Tracking& tracking, PerspectiveMapping& mapping, bool dir, double dis1, double dis2);
 
 	std::vector<Point> smoothTrajectory(const std::vector<cv::Point>& trajectory, int window_size = 5, double sigma = 1.0);
 

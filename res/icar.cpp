@@ -10,6 +10,7 @@
 #include "../include/common.h"
 #include "../include/crossroad.h"
 #include "../include/parking.h"
+#include "../include/obstacle.h"
 #include "conio.h"
 
 using namespace std;
@@ -22,9 +23,12 @@ int main()
 	PerspectiveMapping mapping;
 	ControlCenterCal controlCenterCal;              // 控制中心计算
 	Crossroad crossroad;
-	Parking parking;          
+	Parking parking;        
+	Obstacle obstacle; 
 	Motion motion;
 	Ring ring;
+
+	vector<PredictResult> predictResult;
 
 	// 初始化参数
 	Scene scene = Scene::NormalScene;     // 初始化场景：常规道路
@@ -38,9 +42,9 @@ int main()
 	//"resizeimg/1437.jpg"
 	string where = "resizeimg/1.jpg";
 	string send_trackimg_address = "hamimg1/0.jpg";
-	double angle;
-	tracking.rowStart = ROWSIMAGE - 30;//195
-	//tracking.rowStart = 50;
+	double angle = 0;
+	tracking.rowStart = ROWSIMAGE - 40;//195
+	//tracking.rowStart = 80;
 
 	tracking.m_H = mapping.get_m_H();
 
@@ -58,6 +62,14 @@ int main()
 			std::cerr << "Error loading image" << std::endl;
 			return -1;
 		}
+
+		PredictResult test;
+		test.type = LABEL_BLOCK;
+		test.x = 130;
+		test.y = 100;
+		test.height = 30;
+		test.width = 20;
+		predictResult.push_back(test);
 
 		//大小调整
 		resize(img, imgResize, Size(COLSIMAGE, ROWSIMAGE), 0, 0, INTER_NEAREST);
@@ -85,12 +97,19 @@ int main()
 		}
 		if ((scene == Scene::NormalScene || scene == Scene::ParkingScene) &&
 			motion.params.parking) {
-			if (parking.process(tracking, hsvImage, mapping))  // 传入二值化图像进行再处理
+			if (parking.process(tracking, hsvImage, mapping, predictResult))  // 传入二值化图像进行再处理
 				scene = Scene::ParkingScene;
 			else
 				scene = Scene::NormalScene;
 		}
-
+		if ((scene == Scene::NormalScene || scene == Scene::ObstacleScene) &&
+			motion.params.obstacle) {
+			if (obstacle.process(tracking, predictResult, mapping)) {
+				scene = Scene::ObstacleScene;
+			}
+			else
+				scene = Scene::NormalScene;
+		}
 
 		//direction = 0:默认是右边
 		if (scene == Scene::NormalScene)
@@ -101,11 +120,17 @@ int main()
 			{
 				mapping.direction = 1;
 			}
+			angle = controlCenterCal.Feedback_extraction(tracking, mapping, mapping.direction, 70, 22.5);
+		}
+		else if (scene == Scene::ObstacleScene)
+		{
+			obstacle.drawImage(imgResize); // 图像绘制特殊赛道识别结果
+			angle = controlCenterCal.Feedback_extraction(tracking, mapping, mapping.direction, 40, 33.75);
 		}
 
 		//角度计算，ir=1为左边（dir要改）
 		//mapping.direction = 1;
-		angle = controlCenterCal.Feedback_extraction(tracking, mapping, mapping.direction);
+		//angle = controlCenterCal.Feedback_extraction(tracking, mapping, mapping.direction,22.5,70);
 
 
 		Mat blackImage(1000, 1000, CV_8UC3, cv::Scalar(0, 0, 0));
@@ -129,7 +154,7 @@ int main()
 		//}
 
 		//imwrite(send_trackimg_address, imgResize);
-		tracking.drawImage(imgResize,angle,scene);
+		tracking.drawImage(imgResize, angle, scene);
 		mapping.drawImage(blackImage);
 		controlCenterCal.drawImage(blackImage);
 
@@ -139,8 +164,8 @@ int main()
 		//circle(imgResize, Point(crossroad.pt_Right.y, crossroad.pt_Right.x), 5,
 		//	Scalar(0, 0, 0), -1); // 黄色点
 		
-		imshow("gray_image", gray_image);
-		moveWindow("gray_image", 100, 100);
+		/*imshow("gray_image", gray_image);
+		moveWindow("gray_image", 100, 100);*/
 		imshow("blackImage", blackImage);
 	
 		imshow("imresize", imgResize);

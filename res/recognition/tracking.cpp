@@ -379,7 +379,7 @@ void Tracking::Searching_for_startingPoints()
         255,              // 最大值
         cv::THRESH_BINARY | cv::THRESH_OTSU  // 组合阈值类型
     );
-   // cout << line << endl;
+    //cout << line << endl;
     vector<Point> left_start_again;
     vector<Point> right_start_again;
     
@@ -421,7 +421,7 @@ void Tracking::Searching_for_startingPoints()
             if (boundary_cnt >= boundary_cnt_max)
             {
                 boundary_cnt_max = boundary_cnt;
-                startingPoints.left = left_start[i];
+                //startingPoints.left = left_start[i];
                 left_start_again.push_back(left_start[i]);
             }
         }
@@ -471,7 +471,7 @@ void Tracking::Searching_for_startingPoints()
             {
                 boundary_cnt_max = boundary_cnt;
                 right_start_again.push_back(right_start[i]);
-                startingPoints.right = right_start[i];
+                //startingPoints.right = right_start[i];
             }
         }
         left_start.clear();
@@ -490,7 +490,7 @@ void Tracking::Searching_for_startingPoints()
                 {
                     if ( right_start_again[j].y- left_start_again[i].y > 10)
                     {
-                        int dis = abs((left_start_again[i].y - right_start_again[j].y) );
+                        int dis = abs(left_start_again[i].y - void_col_min) + abs(right_start_again[j].y - void_col_max);
                         if (dis < min_dis)
                         {
                             min_dis = dis;
@@ -642,7 +642,7 @@ bool Tracking::isEdgePoint(Point& Point)
             secondRingWeight * avgSecondRingError);
 
         // 这里设定一个简单阈值来判断是否为边缘点，可以根据实际情况调整
-        double edgeThreshold = 30;
+        double edgeThreshold = 34;
         return totalError > edgeThreshold;
 
     }
@@ -803,6 +803,11 @@ void Tracking::drawImage(Mat& trackImage,double angle, Scene scene)
         circle(trackImage, Point(COLSIMAGE / 2, ROWSIMAGE / 2), 20, Scalar(40, 120, 250), -1);
         putText(trackImage, "P", Point(COLSIMAGE / 2 - 10, ROWSIMAGE / 2 + 10), FONT_HERSHEY_PLAIN, 2, Scalar(255, 255, 255), 2);
         break;
+    case Scene::ObstacleScene:    //[ 障碍区 ]
+        circle(trackImage, Point(COLSIMAGE / 2, ROWSIMAGE / 2), 20, Scalar(40, 120, 250), -1);
+        putText(trackImage, "X", Point(COLSIMAGE / 2 - 10, ROWSIMAGE / 2 + 10), FONT_HERSHEY_PLAIN, 2, Scalar(255, 255, 255), 2);
+        break;
+
     default: // 常规道路场景：无特殊路径规划
         break;
     }

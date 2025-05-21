@@ -21,7 +21,7 @@ Crossroad::Crossroad()
         pt_Left = Point(0, 0);
         pt_Right = Point(0, 0);
         cross_IN_flag = 0;
-        rowStart = 50;
+        rowStart = 80;
         };
     outtype.threshold = 8;
     outtype.action = [this]() {
@@ -29,7 +29,7 @@ Crossroad::Crossroad()
         pt_Left = Point(0, 0);
         pt_Right = Point(0, 0);
         cross_IN_flag = 0;
-        rowStart = 50;
+        rowStart = 80;
         };
     cross_IN_step.threshold = 8;
     cross_IN_step.action = [this]() {
@@ -92,14 +92,14 @@ bool Crossroad::crossRecognition(Tracking& track, PerspectiveMapping& mapping)
         int dx = left_jiaodian.x - pt_Left.x;
         int dy = left_jiaodian.y - pt_Left.y;
         double dis = sqrt(dx * dx + dy * dy) * mapping.PixelPitch();
-        if (dis < 50 && mapping.Left_jiaodian.angle < 110 && !track.PointsEdgeRight_BA.empty())
+        if (dis < 50 && mapping.Left_jiaodian.angle < 110 && !track.PointsEdgeRight_BA.empty() && dy > 0)
         {
             pt_Left = left_jiaodian;
         }
         dx = right_jiaodian.x - pt_Right.x;
         dy = right_jiaodian.y - pt_Right.y;
         dis = sqrt(dx * dx + dy * dy) * mapping.PixelPitch();
-        if (dis < 50 && mapping.Right_jiaodian.angle < 110 && !track.PointsEdgeLeft_BA.empty())
+        if (dis < 50 && mapping.Right_jiaodian.angle < 110 && !track.PointsEdgeLeft_BA.empty() && dy > 0)
         {
             pt_Right = right_jiaodian;
         }
@@ -213,8 +213,8 @@ bool Crossroad::crossRecognition(Tracking& track, PerspectiveMapping& mapping)
 
         if (!track.PointsEdgeLeft_BA.empty() && !track.PointsEdgeRight_BA.empty())
         {
-            if(track.PointsEdgeLeft_BA.back().y < 10 && track.PointsEdgeLeft_BA.back().x > ROWSIMAGE / 2
-                && track.PointsEdgeRight_BA.back().y > COLSIMAGE - 10 && track.PointsEdgeRight_BA.back().x > ROWSIMAGE / 2)
+            if(track.PointsEdgeLeft_BA.back().y < 10 && track.PointsEdgeLeft_BA.back().x > ROWSIMAGE * 2 / 5
+                && track.PointsEdgeRight_BA.back().y > COLSIMAGE - 10 && track.PointsEdgeRight_BA.back().x > ROWSIMAGE * 2 / 5)
             {
                 rowStart = 40;
             }

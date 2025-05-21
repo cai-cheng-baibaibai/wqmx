@@ -7,6 +7,7 @@
  #include "common.h"
  #include "tracking.h"
  #include  "mapping.h"
+ #include "detection.hpp"
 
 using namespace cv;
 using namespace std;
@@ -35,9 +36,9 @@ public:
     };
     
     ParkStep step = ParkStep::none; // 停车步骤
-    ParkType Parkstep = ParkType::ParkRight;
+    ParkType Parkstep = ParkType::ParkLeft;
 
-    bool process(Tracking& track, Mat& image, PerspectiveMapping& mapping);
+    bool process(Tracking& track, Mat& image, PerspectiveMapping& mapping, vector<PredictResult> predict);
     
 
     /**
@@ -55,7 +56,8 @@ private:
 
     uint16_t counterSession = 0;  // 图像场次计数器
     uint16_t counterRec = 0;      // 加油站标志检测计数器
-    bool garageFirst = true;      // 进入一号车库
+    bool garageFirst = false;      // 进入一号车库
+    bool find_First = false;
     int lineY = 0;                // 直线高度
     int lineX = 0;                // 直线高度
     bool startTurning = false;    // 开始转弯

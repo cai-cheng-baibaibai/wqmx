@@ -31,6 +31,18 @@ enum Scene
     StopScene        // 停车（结束）
 };
 
+
+#define LABEL_BATTERY 0    // AI标签：充电站
+#define LABEL_BLOCK 1      // AI标签：障碍物
+#define LABEL_BRIDGE 2     // AI标签：坡道
+#define LABEL_BURGER 3     // AI标签：汉堡
+#define LABEL_CAR 4        // AI标签：道具车
+#define LABEL_COMPANY 5    // AI标签：公司
+#define LABEL_CONE 6       // AI标签：锥桶
+#define LABEL_CROSSWALK 7  // AI标签：斑马线
+#define LABEL_PEDESTRIAN 8 // AI标签：行人
+#define LABEL_SCHOOL 9     // AI标签：学校
+
 struct POINT
 {
     int x = 0;

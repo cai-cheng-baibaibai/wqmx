@@ -2,21 +2,20 @@
 
 
 
-double ControlCenterCal::Feedback_extraction(Tracking& tracking, PerspectiveMapping& mapping,bool dir)
+double ControlCenterCal::Feedback_extraction(Tracking& tracking, PerspectiveMapping& mapping,bool dir,double dis1,double dis2)
 {
 	//边界转换
 	//Edgehandling(tracking, mapping);
 
 
-
 	//中线提取
-	midlineextraction(mapping, dir);//dir=1为左边
+	midlineextraction(mapping, dir,dis2);//dir=1为左边
 	
 	//中线映射
 	midline_track(tracking, mapping);
 
 	//角度计算
-	return pure_pursuit(tracking, mapping);
+	return pure_pursuit(tracking, mapping, dis1);
 
 }
 
@@ -116,15 +115,13 @@ void ControlCenterCal::Edgehandling(Tracking& tracking, PerspectiveMapping &mapp
 	
 }
 
-void ControlCenterCal::midlineextraction(PerspectiveMapping& mapping,bool left)
+void ControlCenterCal::midlineextraction(PerspectiveMapping& mapping,bool left, double point_dis)
 {
 
 	centerEdge.clear();
 	double Pixel_Pitch = mapping.PixelPitch();
-	double point_Distance = 22.5 / Pixel_Pitch;
+	double point_Distance =  point_dis / Pixel_Pitch;
 	int dis = 1;
-
-
 
 	if (left == true && mapping.PointsEdgeLeft.size() > dis + 1)
 	{
@@ -284,7 +281,7 @@ std::vector<cv::Point> ControlCenterCal::smoothTrajectory(const std::vector<cv::
 }
 
 
-double ControlCenterCal::pure_pursuit(Tracking& tracking, PerspectiveMapping& mapping)
+double ControlCenterCal::pure_pursuit(Tracking& tracking, PerspectiveMapping& mapping, double dis1)
 {
 	if (centerEdge.size() < 2)
 	{
@@ -304,9 +301,9 @@ double ControlCenterCal::pure_pursuit(Tracking& tracking, PerspectiveMapping& ma
 	for (int i = 0; i < centerEdge.size(); i++)
 	{
 		double dis = sqrt((centerEdge[i].x - current_pose.x) * (centerEdge[i].x - current_pose.x) + (centerEdge[i].y - current_pose.y) * (centerEdge[i].y - current_pose.y));
-		//70是预瞄距离(比较近)
+		//60是预瞄距离(比较近)
 
-		if (dis * Pixel_Pitch >  60)
+		if (dis * Pixel_Pitch > dis1)
 		{
 			aim_point = centerEdge[i];
 			Point pointemp = mapping.InverseCornerDetection(aim_point);

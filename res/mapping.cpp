@@ -194,31 +194,61 @@ cv::Point PerspectiveMapping::InverseCornerDetection(const cv::Point& transforme
     );
 }
 
-vector<Point> PerspectiveMapping::Cornerdetection(const vector<Point> inputPoints)
-{
+//vector<Point> PerspectiveMapping::Cornerdetection(const vector<Point> inputPoints)
+//{
+//    vector<Point> outputPoints;
+//
+//    // 遍历输入的每个点
+//    for (const auto& inputPoint : inputPoints) {
+//        // 将二维坐标转换为齐次坐标（增加第三维为1）
+//        Mat homogeneousInput = (Mat_<double>(3, 1) << inputPoint.y, inputPoint.x, 1);
+//
+//        // 执行矩阵乘法，模拟透视变换
+//        Mat homogeneousOutput = m_H * homogeneousInput; // m_H 是 3x3 透视变换矩阵
+//
+//        // 将齐次坐标结果转换回二维坐标（除以第三维的值来归一化）
+//        double w = homogeneousOutput.at<double>(2); // 齐次坐标的第三维
+//        if (w != 0) {
+//            double x = homogeneousOutput.at<double>(0) / w;
+//            double y = homogeneousOutput.at<double>(1) / w;
+//            outputPoints.push_back(Point2d(x, y)); // 存储透视变换后的点
+//        }
+//        else {
+//            // 如果w为零，可以选择跳过或使用其他处理方式
+//            // 这里是一个简单的容错处理
+//            outputPoints.push_back(Point2d(0, 0)); // 可以根据需求调整
+//        }
+//    }
+//
+//    return outputPoints;
+//}
+
+vector<Point> PerspectiveMapping::Cornerdetection(const vector<Point> inputPoints) {
+    CV_Assert(m_H.type() == CV_64F && m_H.rows == 3 && m_H.cols == 3);
+
+    // 批量矩阵运算
+    Mat inputHomogeneous(inputPoints.size(), 3, CV_64F);
+    for (size_t i = 0; i < inputPoints.size(); ++i) {
+        inputHomogeneous.at<double>(i, 0) = inputPoints[i].y;
+        inputHomogeneous.at<double>(i, 1) = inputPoints[i].x;
+        inputHomogeneous.at<double>(i, 2) = 1;
+    }
+
+    Mat outputHomogeneous = inputHomogeneous * m_H.t();
     vector<Point> outputPoints;
+    outputPoints.reserve(inputPoints.size());
 
-    // 遍历输入的每个点
-    for (const auto& inputPoint : inputPoints) {
-        // 将二维坐标转换为齐次坐标（增加第三维为1）
-        Mat homogeneousInput = (Mat_<double>(3, 1) << inputPoint.y, inputPoint.x, 1);
-
-        // 执行矩阵乘法，模拟透视变换
-        Mat homogeneousOutput = m_H * homogeneousInput; // m_H 是 3x3 透视变换矩阵
-
-        // 将齐次坐标结果转换回二维坐标（除以第三维的值来归一化）
-        double w = homogeneousOutput.at<double>(2); // 齐次坐标的第三维
-        if (w != 0) {
-            double x = homogeneousOutput.at<double>(0) / w;
-            double y = homogeneousOutput.at<double>(1) / w;
-            outputPoints.push_back(Point2d(x, y)); // 存储透视变换后的点
-        }
-        else {
-            // 如果w为零，可以选择跳过或使用其他处理方式
-            // 这里是一个简单的容错处理
-            outputPoints.push_back(Point2d(0, 0)); // 可以根据需求调整
+    // 归一化与过滤
+    for (int i = 0; i < outputHomogeneous.rows; ++i) {
+        double w = outputHomogeneous.at<double>(i, 2);
+        if (std::abs(w) > 1e-6) {
+            outputPoints.emplace_back(
+                outputHomogeneous.at<double>(i, 0) / w,
+                outputHomogeneous.at<double>(i, 1) / w
+            );
         }
     }
+
 
     return outputPoints;
 }
